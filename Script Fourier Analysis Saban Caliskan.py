@@ -8,7 +8,7 @@ Saban Caliskan
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fftpack import fft, ifft
-# from numpy.fft import fft, 
+# from numpy.fft import fft
 
 # sampling rate
 Ndata = 700
@@ -16,8 +16,8 @@ Ndata = 700
 t = np.arange(0,1,1/Ndata)
 
 # sinusoide function with different frequencies and amplitudes
-freq = [1,3,5]
-Amp = [1,5,8]
+freq = [1,2,4]
+Amp = [1,3,6]
 
 x = []
  
