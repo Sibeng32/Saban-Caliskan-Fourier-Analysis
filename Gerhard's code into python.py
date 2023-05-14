@@ -64,10 +64,7 @@ def FFT_peakFit(data, method):
         return jains_coord
     
     elif method == "Quinns2nd":
-        
-        # =============================================================================
-        #                               UNDER CONSTRUCTION
-        # =============================================================================
+    
         
         LoDe = ( data[peak_index].real * data[peak_index].real + data[peak_index].imag * data[peak_index].imag) # long denominator
         
@@ -103,7 +100,7 @@ if comparePlot:
     pm = np.full((len(Fval)), np.nan)
     
     for i in range(len(Fval)):
-        y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N))
+        y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1))
         Total_sin.append(y)
         fy = fft(y)
         data = fy[fit_interval]
@@ -114,7 +111,7 @@ if comparePlot:
             ff[i, j] = FFT_peakFit(data, lt[j])
 
 
-    Total_sin = np.sum(np.array(Total_sin),1)
+    Total_sin = np.sum(np.array(Total_sin),0)
     plt.figure(figsize = (8, 6))
     plt.plot(Total_sin )
     plt.ylabel('Amplitude')
@@ -148,22 +145,22 @@ if comparePlot:
 # =============================================================================
 
 if noiseAnalysis:
-    ff =  np.full((len(Fval), 4), np.nan)
-    fn =  np.full((len(Fval), 4), np.nan)
-    fv =  np.full((len(Fval), Nnoise), np.nan)
+    ff = np.full((len(Fval), len(lt)), np.nan)
+    fn = np.full((len(Fval), len(lt)), np.nan)
+    fv = np.full((len(Fval), Nnoise), np.nan)
     
-    for i in range(len(Fval)):        
-    # 
-    # gives an error
-    # 
-        y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N))
-        fy = fft(y + RMS*np.random.randn(Nnoise,  N), [], 2)
+    for i in range(len(Fval)):
+        y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1))
+        fy = np.fft.fft(y + RMS * np.random.randn(Nnoise, N), axis=1)
         data = fy[fit_interval]
-        for j in range(len(Fval)):
-            fd = FFT_peakFit(data, lt[j])
-            ff[i,j] = np.mean(fd)
-            fv[i,j] = np.var(fd)
+        
+        for j in range(len(lt)):
+            fd = []
+            for k in range(len(data)):
+                fd.append(FFT_peakFit(data[k], lt[j]))
             
+            ff[i, j] = np.mean(fd)
+            fv[i, j] = np.var(fd)
 
 plt.figure(figsize = (10, 10))
 h3 = plt.subplot(211)
