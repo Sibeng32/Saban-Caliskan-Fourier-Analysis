@@ -18,6 +18,8 @@ fit_interval = np.arange(7, 13, 1)
 fit_offset = m.ceil(len(fit_interval) / 2) + 1
 Nnoise = 1000
 RMS = 0.1
+# Phase_difference = 
+
 
 comparePlot = True
 noiseAnalysis = True
@@ -148,22 +150,23 @@ if noiseAnalysis:
     ff = np.full((len(Fval), len(lt)), np.nan)
     fn = np.full((len(Fval), len(lt)), np.nan)
     fv = np.full((len(Fval), Nnoise), np.nan)
+    # fv array, filled with nan's, why does it need to be 1000 wide?
     
     for i in range(len(Fval)):
         y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1))
         fy = np.fft.fft(y + RMS * np.random.randn(Nnoise, N), axis=1)
-        data = fy[fit_interval]
+        data = fy[i]
+        # i  honestly dont know  if i'm doing this correctly ^
         
+        fd = []  
         for j in range(len(lt)):
-            fd = []
-            for k in range(len(data)):
-                fd.append(FFT_peakFit(data[k], lt[j]))
-            
+            fd.append(FFT_peakFit(data, lt[j]))
             ff[i, j] = np.mean(fd)
             fv[i, j] = np.var(fd)
-
+#%%
 plt.figure(figsize = (10, 10))
 h3 = plt.subplot(211)
+plt.loglog(ff)
 plt.plot(Fval, ff, '.-')
 plt.title('Fit of FFT peak position')
 plt.xlabel('Frequency (units of $\Delta$ f)')
