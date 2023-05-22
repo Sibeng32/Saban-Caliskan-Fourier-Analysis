@@ -117,7 +117,7 @@ if comparePlot:
 
     Total_sin = np.sum(np.array(Total_sin),1)
     plt.figure(figsize = (8, 6))
-    plt.plot(Total_sin )
+    plt.plot(Total_sin)
     plt.ylabel('Amplitude')
     plt.show()
     

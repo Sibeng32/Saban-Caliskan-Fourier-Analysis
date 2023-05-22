@@ -7,6 +7,7 @@ Saban Caliskan
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy
 from scipy.fftpack import fft, ifft
 # from numpy.fft import fft
 
@@ -37,6 +38,7 @@ plt.show()
 
 # FFT from data
 F = fft(x)
+F = scipy.fft.fftshift(F)
 F_abs = np.abs(F)
 
 n = np.arange(len(F))
@@ -49,7 +51,7 @@ plt.subplot(1, 2, 1)
 plt.stem(freq, F_abs, 'b', markerfmt=" ", basefmt="-b")
 plt.xlabel('Freq ')
 plt.ylabel('Amplitude')
-plt.xlim(0, 10)
+plt.xlim(340, 360)
 
 plt.subplot(1, 2, 2)
 plt.plot(t, ifft(F), 'r')

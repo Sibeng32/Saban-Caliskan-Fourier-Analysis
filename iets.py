@@ -21,8 +21,6 @@ RMS = 0.1
 
 Phase = True
 Noise = False
-comparePlot = True
-noiseAnalysis = True
 
 lt = ["Quadratic", "Barycentric", "Jains", "Quinns2nd"]
 lt = [lt[2], lt[3]]
@@ -98,32 +96,101 @@ def FFT_peakFit(data, method):
     
 if Phase == True:
     for phi in Phases:
+        bruh = phi
         if Noise == True:
             Total_sin =  []
+            
+            ff = np.full((len(Fval), len(lt)), np.nan)
+            fn = np.full((len(Fval), len(lt)), np.nan)
+            fv = np.full((len(Fval), Nnoise), np.nan)
+     
             for i in range(len(Fval)):
-                y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1) + phi) + RMS * np.random.randn(Nnoise, N)
-                Total_sin.append(y)
+                y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1))
+                fy = fft(y + RMS * np.random.randn(Nnoise, N), axis=1)
+                data = fy[:, fit_interval]
+                Total_sin.append(y + RMS * np.random.randn(Nnoise, N))
                 
+                for j in range(len(lt)):
+                    fd = []
+                    for k in range(len(data)):
+                         fd.append(FFT_peakFit(data[k], lt[j]))
+                    ff[i, j] = np.mean(fd)
+                    fv[i, j] = np.var(fd)
+
+            #plot sinus met ruis en faseverschil
             Total_sin = np.array(Total_sin)
             Total_sin = np.sum(np.array(Total_sin), 1)
             
             MeanSin = np.mean(Total_sin, axis = 1)
             plt.figure(figsize = (8, 6))
             plt.plot(MeanSin)
-            plt.ylabel('Mean Amplitude with Noi')
+            plt.ylabel(f'Mean Amplitude with Noise met fase verschil {bruh}')
+            plt.show()
+            
+            #plot DFFT van Sinus met fase verschil en ruis
+            plt.figure(figsize = (10, 10))
+            h3 = plt.subplot(211)
+    
+            plt.plot(Fval, ff, '.-')
+            plt.title('Fit of FFT peak position')
+            plt.xlabel('Frequency (units of $\Delta$ f)')
+            plt.ylabel('Average peak fit (pxl)')
+            plt.legend(lt)
+    
+            h4 = plt.subplot(212)
+            plt.plot(Fval, np.sqrt(fv), '.-')
+            plt.title(f"effect of noise {RMS}")
+            plt.xlabel('Frequency (units of $\Delta$ f)')
+            plt.ylabel('variance peak fit (units of $\Delta$ f)')
+            plt.legend(lt)
+    
             plt.show()
             
         if Noise == False:
             Total_sin =  []
+            ff = np.full((len(Fval), len(lt)), np.nan)
+            fv = np.full((len(Fval), len(fit_interval)), np.nan)
+            pm = np.full((len(Fval)), np.nan)
+            
+            
             for i in range(len(Fval)):
                 y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1) + phi )
                 Total_sin.append(y)
-            
+                
+                fy = fft(y)
+                data = fy[fit_interval]
+                fv[i, :] = data
+                pm[i] = np.argmax(abs(data))
+                
+                for j in range(len(lt)):
+                    ff[i, j] = FFT_peakFit(data, lt[j])
+                
+            # plot sinus met fase verschil, zonder ruis
             Total_sin = np.array(Total_sin)
             Total_sin = np.sum(np.array(Total_sin), 1)
             plt.figure(figsize = (8, 6))
             plt.plot(Total_sin )
-            plt.ylabel('Amplitude')
+            plt.ylabel(f'Amplitude met fase verschil {bruh}')
+            plt.show()
+        
+
+            plt.figure(figsize = (10, 10))
+            h1 = plt.subplot(211)
+            for i in range(len(lt)):
+                plt.plot(Fval, ff[:, i] + fit_offset, '.-',  label=lt[0], linewidth = 0.5)
+
+            plt.plot(Fval, pm + fit_offset, 'b', label='Maximum pixel')
+            plt.xlabel('Frequency (units of $\Delta$ f)')
+            plt.ylabel('peak fit (pxl)')
+            plt.legend(lt + ['Maximum pixel'])
+            
+            h2 = plt.subplot(212)
+            for i in range(len(lt)):
+                plt.plot(Fval, (ff[:, i] + fit_interval[1] - 2) - Fval, '.-',  label=lt[0], linewidth = 0.5)
+          
+            plt.xlabel('Frequency (units of $\Delta$ f)')
+            plt.ylabel('misfit ()')
+            plt.legend(lt)
             plt.show()
     
 
@@ -141,8 +208,43 @@ if Phase == False:
         MeanSin = np.mean(Total_sin, axis = 1)
         plt.figure(figsize = (8, 6))
         plt.plot(MeanSin)
-        plt.ylabel('Mean Amplitude with Noi')
+        plt.ylabel('Mean Amplitude with Noise')
         plt.show()
+        
+        ff = np.full((len(Fval), len(lt)), np.nan)
+        fn = np.full((len(Fval), len(lt)), np.nan)
+        fv = np.full((len(Fval), Nnoise), np.nan)
+        
+        for i in range(len(Fval)):
+            y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1))
+            fy = fft(y + RMS * np.random.randn(Nnoise, N), axis=1)
+            data = fy[:, fit_interval]
+            
+            for j in range(len(lt)):
+                fd = []
+                for k in range(len(data)):
+                     fd.append(FFT_peakFit(data[k], lt[j]))
+                ff[i, j] = np.mean(fd)
+                fv[i, j] = np.var(fd)
+            
+        plt.figure(figsize = (10, 10))
+        h3 = plt.subplot(211)
+        
+        plt.plot(Fval, ff, '.-')
+        plt.title('Fit of FFT peak position')
+        plt.xlabel('Frequency (units of $\Delta$ f)')
+        plt.ylabel('Average peak fit (pxl)')
+        plt.legend(lt)
+        
+        h4 = plt.subplot(212)
+        plt.plot(Fval, np.sqrt(fv), '.-')
+        plt.title(f"effect of noise {RMS}")
+        plt.xlabel('Frequency (units of $\Delta$ f)')
+        plt.ylabel('variance peak fit (units of $\Delta$ f)')
+        plt.legend(lt)
+        
+        plt.show()
+            
         
     if Noise == False:
         Total_sin =  []
@@ -157,82 +259,36 @@ if Phase == False:
         plt.ylabel('Amplitude')
         plt.show()
         
-
-#%%compare plot
-
-if comparePlot:
-    ff = np.full((len(Fval), len(lt)), np.nan)
-    fv = np.full((len(Fval), len(fit_interval)), np.nan)
-    pm = np.full((len(Fval)), np.nan)
-    
-    for i in range(len(Fval)):
-        y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1))
-        fy = fft(y)
-        data = fy[fit_interval]
-        fv[i, :] = data
-        pm[i] = np.argmax(abs(data))
+        ff = np.full((len(Fval), len(lt)), np.nan)
+        fv = np.full((len(Fval), len(fit_interval)), np.nan)
+        pm = np.full((len(Fval)), np.nan)
         
-        for j in range(len(lt)):
-            ff[i, j] = FFT_peakFit(data, lt[j])
+        for i in range(len(Fval)):
+            y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1))
+            fy = fft(y)
+            data = fy[fit_interval]
+            fv[i, :] = data
+            pm[i] = np.argmax(abs(data))
+            
+            for j in range(len(lt)):
+                ff[i, j] = FFT_peakFit(data, lt[j])
 
-    plt.figure(figsize = (10, 10))
-    h1 = plt.subplot(211)
-    for i in range(len(lt)):
-        plt.plot(Fval, ff[:, i] + fit_offset, '.-',  label=lt[0], linewidth = 0.5)
+        plt.figure(figsize = (10, 10))
+        h1 = plt.subplot(211)
+        for i in range(len(lt)):
+            plt.plot(Fval, ff[:, i] + fit_offset, '.-',  label=lt[0], linewidth = 0.5)
 
-    plt.plot(Fval, pm + fit_offset, 'b', label='Maximum pixel')
-    plt.xlabel('Frequency (units of $\Delta$ f)')
-    plt.ylabel('peak fit (pxl)')
-    plt.legend(lt + ['Maximum pixel'])
-    
-    h2 = plt.subplot(212)
-    for i in range(len(lt)):
-        plt.plot(Fval, (ff[:, i] + fit_interval[1] - 2) - Fval, '.-',  label=lt[0], linewidth = 0.5)
-  
-    plt.xlabel('Frequency (units of $\Delta$ f)')
-    plt.ylabel('misfit ()')
-    plt.legend(lt)
-    plt.show()
-    
-#%% code for noise analysis
-
-# =============================================================================
-#                        UNDER CONSTRUCTION 
-# =============================================================================
-
-if noiseAnalysis:
-    ff = np.full((len(Fval), len(lt)), np.nan)
-    fn = np.full((len(Fval), len(lt)), np.nan)
-    fv = np.full((len(Fval), Nnoise), np.nan)
-    
-    for i in range(len(Fval)):
-        y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1))
-        fy = fft(y + RMS * np.random.randn(Nnoise, N), axis=1)
-        data = fy[:, fit_interval]
+        plt.plot(Fval, pm + fit_offset, 'b', label='Maximum pixel')
+        plt.xlabel('Frequency (units of $\Delta$ f)')
+        plt.ylabel('peak fit (pxl)')
+        plt.legend(lt + ['Maximum pixel'])
         
-        for j in range(len(lt)):
-            fd = []
-            for k in range(len(data)):
-                 fd.append(FFT_peakFit(data[k], lt[j]))
-            ff[i, j] = np.mean(fd)
-            fv[i, j] = np.var(fd)
+        h2 = plt.subplot(212)
+        for i in range(len(lt)):
+            plt.plot(Fval, (ff[:, i] + fit_interval[1] - 2) - Fval, '.-',  label=lt[0], linewidth = 0.5)
+      
+        plt.xlabel('Frequency (units of $\Delta$ f)')
+        plt.ylabel('misfit ()')
+        plt.legend(lt)
+        plt.show()
         
-#%%
-plt.figure(figsize = (10, 10))
-h3 = plt.subplot(211)
-
-plt.plot(Fval, ff, '.-')
-plt.title('Fit of FFT peak position')
-plt.xlabel('Frequency (units of $\Delta$ f)')
-plt.ylabel('Average peak fit (pxl)')
-plt.legend(lt)
-
-h4 = plt.subplot(212)
-plt.plot(Fval, np.sqrt(fv), '.-')
-plt.title(f"effect of noise {RMS}")
-plt.xlabel('Frequency (units of $\Delta$ f)')
-plt.ylabel('variance peak fit (units of $\Delta$ f)')
-plt.legend(lt)
-
-plt.show()
-
