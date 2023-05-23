@@ -87,14 +87,10 @@ def FFT_peakFit(data, method):
 
 
 
-#%%compare plot
-
-
-
-
+#%%compare plotS
 
 lt = ["Quadratic", "Barycentric", "Jains", "Quinns2nd"]
-
+# lt = [lt[2], lt[3]]
 
 Total_sin =  []
 
@@ -102,7 +98,7 @@ if comparePlot:
     ff = np.full((len(Fval), len(lt)), np.nan)
     fv = np.full((len(Fval), len(fit_interval)), np.nan)
     pm = np.full((len(Fval)), np.nan)
-    
+
     for i in range(len(Fval)):
         y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1))
         Total_sin.append(y)
@@ -110,7 +106,7 @@ if comparePlot:
         data = fy[fit_interval]
         fv[i, :] = data
         pm[i] = np.argmax(abs(data))
-        
+
         for j in range(len(lt)):
             ff[i, j] = FFT_peakFit(data, lt[j])
 
