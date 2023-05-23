@@ -17,13 +17,13 @@ Ndata = 150
 t = np.arange(0,1,1/Ndata)
 
 # sinusoide function with different frequencies and amplitudes
-freq = [1.4]
+freq = [4.2]
 Amp = [1]
 
 x = []
  
 for i in range(len(freq)):
-    a = Amp[i]*np.sin(2*np.pi*freq[i]*t)
+    a = Amp[i]*np.sin(2*np.pi*freq[i]*t) #+1.2*np.exp(-(t-1)**2)
     x.append(a)
 
 x = sum(x)
@@ -41,6 +41,9 @@ plt.show()
 F = fft(x)
 
 F_abs = np.abs(F)
+F_abs[0] = 0
+
+
 
 n = np.arange(len(F))
 T = len(F)/Ndata
@@ -61,11 +64,11 @@ plt.bar(fx, F_abs, width = 1)
 
 plt.xlabel('Freq ')
 plt.ylabel('Amplitude')
-plt.xlim(-10, 10)
+plt.xlim(0, 10)
 
 plt.subplot(1, 2, 2)
 plt.title(f" {Ndata} data points of a sinus ")
-plt.plot(t, ifft(F), 'r.')
+plt.plot(t, ifft(F), 'r.', markersize=2)
 plt.xlabel('Time')
 plt.ylabel('Amplitude')
 plt.tight_layout()

@@ -15,7 +15,7 @@ df = 1 / N
 
 Fval = np.linspace(8.4, 9.6, 99)
 fit_interval = np.arange(7, 13, 1)
-fit_offset = m.ceil(len(fit_interval) / 2) + 1
+fit_offset = m.ceil(len(fit_interval)/2) + 1/2
 Nnoise = 1000
 RMS = 0.1
 
@@ -80,6 +80,7 @@ def FFT_peakFit(data, method):
             (x + 1 - np.sqrt(2 / 3)) / (x + 1 + np.sqrt(2 / 3)))
 
         d = (dp + dm) / 2 + tau(dp * dp) - tau(dm * dm)
+        
         quinns2nd_coord = peak_index + d
 
         return quinns2nd_coord       
@@ -93,8 +94,8 @@ def FFT_peakFit(data, method):
 #%%compare plotS
 
 lt = ["Quadratic", "Barycentric", "Jains", "Quinns2nd"]
-# lt = [lt[3]]
-
+lt = [lt[2], lt[3]]
+#
 Total_sin =  []
 
 if comparePlot:
@@ -123,16 +124,16 @@ if comparePlot:
     plt.figure(figsize = (10, 10))
     h1 = plt.subplot(211)
     for i in range(len(lt)):
-        plt.plot(Fval, ff[:, i] + fit_offset, '.-',  label=lt[0], linewidth = 0.5)
+        plt.plot(Fval, ff[:, i] + 2*fit_offset, '.-',  label=lt[i], linewidth = 0.5)
 
-    plt.plot(Fval, pm + fit_offset, 'b', label='Maximum pixel')
+    plt.plot(Fval, pm + 2*fit_offset, 'b', label='Maximum pixel')
     plt.xlabel('Frequency (units of $\Delta$ f)')
     plt.ylabel('peak fit (pxl)')
     plt.legend(lt + ['Maximum pixel'])
     
     h2 = plt.subplot(212)
     for i in range(len(lt)):
-        plt.plot(Fval, (ff[:, i] + fit_interval[1] - 2) - Fval, '.-',  label=lt[0], linewidth = 0.5)
+        plt.plot(Fval, (ff[:, i] + fit_interval[0]) - Fval, '.-',  label=lt[0], linewidth = 0.5)
   
     plt.xlabel('Frequency (units of $\Delta$ f)')
     plt.ylabel('misfit ()')
