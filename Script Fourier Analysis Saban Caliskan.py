@@ -12,12 +12,12 @@ from scipy.fftpack import fft, ifft
 # from numpy.fft import fft
 
 # sampling rate
-Ndata = 20
+Ndata = 150
 # sample interval 
 t = np.arange(0,1,1/Ndata)
 
 # sinusoide function with different frequencies and amplitudes
-freq = [2.2]
+freq = [1.4]
 Amp = [1]
 
 x = []
@@ -45,20 +45,23 @@ F_abs = np.abs(F)
 n = np.arange(len(F))
 T = len(F)/Ndata
 freq = n/T 
-fx = scipy.fft.fftfreq(Ndata)
+fx = scipy.fft.fftfreq(x.size, d=1/Ndata)
 
-bruh = np.vstack((fx,F_abs)).T
-bruhh = np.flip( bruh[bruh[:,0].argsort()[::-1]], 0)
+dum = np.vstack((fx,F_abs)).T
+dummy = np.flip( dum[dum[:,0].argsort()[::-1]], 0)
+
 # plots of both FFT and IFFT
 plt.figure(figsize = (12, 6))
 
 plt.subplot(1, 2, 1)
 plt.title(f" FFT vlaues of a sinus with {Ndata} bins")
-# plt.stem(fx, F_abs, 'b', markerfmt=" ", basefmt="-b")
-plt.hist(bruhh[:,1], bins= Ndata)
+plt.bar(fx, F_abs, width = 1)
+
+# plt.hist(dummy[:,1], bins= Ndata)
+
 plt.xlabel('Freq ')
 plt.ylabel('Amplitude')
-# plt.xlim(0, Ndata)
+plt.xlim(-10, 10)
 
 plt.subplot(1, 2, 2)
 plt.title(f" {Ndata} data points of a sinus ")

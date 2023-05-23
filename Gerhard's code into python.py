@@ -66,12 +66,15 @@ def FFT_peakFit(data, method):
     elif method == "Quinns2nd":
     
         
-        LoDe = ( data[peak_index].real * data[peak_index].real + data[peak_index].imag * data[peak_index].imag) # long denominator
+        LoDe = ( data[peak_index].real * data[peak_index].real + data[peak_index].imag * 
+                data[peak_index].imag) # long denominator
         
-        ap = (data[peak_index + 1].real * data[peak_index].real + data[peak_index + 1].imag * data[peak_index].imag) / LoDe
+        ap = (data[peak_index + 1].real * data[peak_index].real + data[peak_index + 1].imag * 
+              data[peak_index].imag) / LoDe
         dp = -ap / (1 - ap)
         
-        am = (data[peak_index - 1].real * data[peak_index].real + data[peak_index - 1].imag * data[peak_index].imag) / LoDe
+        am = (data[peak_index - 1].real * data[peak_index].real + data[peak_index - 1].imag *
+              data[peak_index].imag) / LoDe
         dm = am / (1 - am)
         tau = lambda x: 1 / 4 * np.log(3 * x ** 2 + 6 * x + 1) - np.sqrt(6) / 24 * np.log(
             (x + 1 - np.sqrt(2 / 3)) / (x + 1 + np.sqrt(2 / 3)))
@@ -90,7 +93,7 @@ def FFT_peakFit(data, method):
 #%%compare plotS
 
 lt = ["Quadratic", "Barycentric", "Jains", "Quinns2nd"]
-# lt = [lt[2], lt[3]]
+# lt = [lt[3]]
 
 Total_sin =  []
 
@@ -119,20 +122,18 @@ if comparePlot:
     
     plt.figure(figsize = (10, 10))
     h1 = plt.subplot(211)
-    plt.plot(Fval, ff[:, 0] + fit_offset, '.-',  label=lt[0], linewidth = 0.5)
-    plt.plot(Fval, ff[:, 1] + fit_offset, '.-',  label=lt[1], linewidth = 0.5)
-    plt.plot(Fval, ff[:, 2] + fit_offset, '.-',  label=lt[2], linewidth = 0.5)
-    plt.plot(Fval, ff[:, 3] + fit_offset, '.-',  label=lt[3], linewidth = 0.5)
+    for i in range(len(lt)):
+        plt.plot(Fval, ff[:, i] + fit_offset, '.-',  label=lt[0], linewidth = 0.5)
+
     plt.plot(Fval, pm + fit_offset, 'b', label='Maximum pixel')
     plt.xlabel('Frequency (units of $\Delta$ f)')
     plt.ylabel('peak fit (pxl)')
     plt.legend(lt + ['Maximum pixel'])
     
     h2 = plt.subplot(212)
-    plt.plot(Fval, (ff[:, 0] + fit_interval[1] - 2) - Fval, '.-',  label=lt[0], linewidth = 0.5)
-    plt.plot(Fval, (ff[:, 1] + fit_interval[1] - 2) - Fval, '.-',  label=lt[1], linewidth = 0.5)
-    plt.plot(Fval, (ff[:, 2] + fit_interval[1] - 2) - Fval, '.-',  label=lt[2], linewidth = 0.5)
-    plt.plot(Fval, (ff[:, 3] + fit_interval[1] - 2) - Fval, '.-',  label=lt[3], linewidth = 0.5)
+    for i in range(len(lt)):
+        plt.plot(Fval, (ff[:, i] + fit_interval[1] - 2) - Fval, '.-',  label=lt[0], linewidth = 0.5)
+  
     plt.xlabel('Frequency (units of $\Delta$ f)')
     plt.ylabel('misfit ()')
     plt.legend(lt)
