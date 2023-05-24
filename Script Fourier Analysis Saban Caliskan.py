@@ -12,12 +12,12 @@ from scipy.fftpack import fft, ifft
 # from numpy.fft import fft
 
 # sampling rate
-Ndata = 150
+Ndata = 700
 # sample interval 
 t = np.arange(0,1,1/Ndata)
 
 # sinusoide function with different frequencies and amplitudes
-freq = [4.2]
+freq = [4.4]
 Amp = [1]
 
 x = []

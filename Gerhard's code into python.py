@@ -65,6 +65,17 @@ def FFT_peakFit(data, method):
     
     elif method == "Quinns2nd":
     
+        # a = (data[peak_index + 1].real * data[peak_index].real + data[peak_index + 1].imag * data[peak_index].imag) / \
+        #     (data[peak_index].real**2 + data[peak_index].imag**2)
+        # b = (data[peak_index - 1].real * data[peak_index].real + data[peak_index - 1].imag * data[peak_index].imag) / \
+        #     (data[peak_index].real**2 + data[peak_index].imag**2)
+    
+        # d = (a - b) / (2 * (1 - a - b))
+    
+        # # quinns1st_coord = peak_index + d
+ 
+
+        tau = lambda x: 1 / 4 * np.log(3 * x ** 2 + 6 * x + 1) - np.sqrt(6) / 24 * np.log((x + 1 - np.sqrt(2 / 3)) / (x + 1 + np.sqrt(2 / 3)))
         
         LoDe = ( data[peak_index].real * data[peak_index].real + data[peak_index].imag * 
                 data[peak_index].imag) # long denominator
@@ -76,8 +87,7 @@ def FFT_peakFit(data, method):
         am = (data[peak_index - 1].real * data[peak_index].real + data[peak_index - 1].imag *
               data[peak_index].imag) / LoDe
         dm = am / (1 - am)
-        tau = lambda x: 1 / 4 * np.log(3 * x ** 2 + 6 * x + 1) - np.sqrt(6) / 24 * np.log(
-            (x + 1 - np.sqrt(2 / 3)) / (x + 1 + np.sqrt(2 / 3)))
+
 
         d = (dp + dm) / 2 + tau(dp * dp) - tau(dm * dm)
         
@@ -94,7 +104,7 @@ def FFT_peakFit(data, method):
 #%%compare plotS
 
 lt = ["Quadratic", "Barycentric", "Jains", "Quinns2nd"]
-lt = [lt[2], lt[3]]
+# lt = [lt[2]]
 #
 Total_sin =  []
 
@@ -133,7 +143,7 @@ if comparePlot:
     
     h2 = plt.subplot(212)
     for i in range(len(lt)):
-        plt.plot(Fval, (ff[:, i] + fit_interval[0]) - Fval, '.-',  label=lt[0], linewidth = 0.5)
+        plt.plot(Fval, (ff[:, i] + 2*fit_offset) - Fval, '.-',  label=lt[0], linewidth = 0.5)
   
     plt.xlabel('Frequency (units of $\Delta$ f)')
     plt.ylabel('misfit ()')
