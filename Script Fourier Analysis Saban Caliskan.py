@@ -14,16 +14,16 @@ from scipy.fftpack import fft, ifft
 # sampling rate
 Ndata = 700
 # sample interval 
-t = np.arange(0,1,1/Ndata)
+t = np.arange(0,5,1/Ndata)
 
 # sinusoide function with different frequencies and amplitudes
-freq = [4.4]
+freq = [4]
 Amp = [1]
 
 x = []
  
 for i in range(len(freq)):
-    a = Amp[i]*np.sin(2*np.pi*freq[i]*t) #+1.2*np.exp(-(t-1)**2)
+    a = Amp[i]*np.sin(2*np.pi*freq[i]*t) * np.exp(-0.05*(t**2)) + 1.2*np.exp(-(t-1)**2)
     x.append(a)
 
 x = sum(x)

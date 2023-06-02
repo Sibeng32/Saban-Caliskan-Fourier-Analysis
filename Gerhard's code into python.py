@@ -82,7 +82,7 @@ def FFT_peakFit(data, method):
         
         ap = (data[peak_index + 1].real * data[peak_index].real + data[peak_index + 1].imag * 
               data[peak_index].imag) / LoDe
-        dp = -ap / (1 - ap)
+        dp = - ap / (1 - ap)
         
         am = (data[peak_index - 1].real * data[peak_index].real + data[peak_index - 1].imag *
               data[peak_index].imag) / LoDe
@@ -104,9 +104,8 @@ def FFT_peakFit(data, method):
 #%%compare plotS
 
 lt = ["Quadratic", "Barycentric", "Jains", "Quinns2nd"]
-# lt = [lt[2]]
+lt = [lt[2], lt[3]]
 #
-Total_sin =  []
 
 if comparePlot:
     ff = np.full((len(Fval), len(lt)), np.nan)
@@ -115,7 +114,6 @@ if comparePlot:
 
     for i in range(len(Fval)):
         y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1))
-        Total_sin.append(y)
         fy = fft(y)
         data = fy[fit_interval]
         fv[i, :] = data
@@ -124,13 +122,6 @@ if comparePlot:
         for j in range(len(lt)):
             ff[i, j] = FFT_peakFit(data, lt[j])
 
-
-    Total_sin = np.sum(np.array(Total_sin),1)
-    plt.figure(figsize = (8, 6))
-    plt.plot(Total_sin)
-    plt.ylabel('Amplitude')
-    plt.show()
-    
     plt.figure(figsize = (10, 10))
     h1 = plt.subplot(211)
     for i in range(len(lt)):
@@ -146,7 +137,7 @@ if comparePlot:
         plt.plot(Fval, (ff[:, i] + 2*fit_offset) - Fval, '.-',  label=lt[0], linewidth = 0.5)
   
     plt.xlabel('Frequency (units of $\Delta$ f)')
-    plt.ylabel('misfit ()')
+    plt.ylabel('misfit')
     plt.legend(lt)
     plt.show()
     
