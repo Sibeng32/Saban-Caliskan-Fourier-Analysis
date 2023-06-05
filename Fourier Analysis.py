@@ -13,14 +13,15 @@ from scipy.fftpack import fft, ifft
 N = 700
 df = 1 / N
 
-Fval = np.linspace(8.4, 9.6, 99)
+Fval = np.linspace(8, 10, 1000)
 fit_interval = np.arange(7, 13, 1)
 fit_offset = m.ceil(len(fit_interval)/2) + 1/2
 
 # desired output
 CompareMethods = True   # Compares the methods in a graph
-noiseAnalysis = True    # Outputs a graph for the mean o fmultiple samples with noise.
-PhaseAnalysis = True    # Compares for different phase shifts per method
+NoiseAnalysis = False   # Outputs a graph for the mean o fmultiple samples with noise.
+PhaseAnalysis = False    # Compares for different phase shifts per method
+
 
 # which methods do you want?
 lt = ["Quadratic", "Barycentric", "Jains", "Quinns2nd"]
@@ -32,7 +33,9 @@ RealData = False
 
 # input for simulation:
 Gnoise = True                # Does the signal have a gaussian curve to it?
-DifferentPhase = True        # do you want to compare  for different phase shifts?
+DifferentPhase = False        # do you want to compare  for different phase shifts?
+
+ShowInputsignal = False       # shows a graph of the first signal
 
 # which phases do you want?
 Phase_shift = np.arange(0, 10)*0.2*np.pi
@@ -114,6 +117,8 @@ def FFT_peakFit(data, method):
 
 #%% Simulation Dataset
 
+SInput = []
+
 if DataSimulation == True:
     if Gnoise == True:
         if DifferentPhase:
@@ -124,7 +129,9 @@ if DataSimulation == True:
                     pm = np.full((len(Fval)), np.nan)
                 
                     for i in range(len(Fval)):
-                        y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1) + Phase_shift[k]) * np.exp(-0.01* RMS*df*(np.arange(1, N+1) - 200)**2) + 2*np.exp(-0.03*df*(np.arange(1, N+1)- 200)**2)
+                        y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1) + 
+                                   Phase_shift[k]) * np.exp(-0.01* RMS*df*(np.arange(1, N+1) - 200)**2) + 2*np.exp(-0.03*df*(np.arange(1, N+1)- 200)**2)
+                        SInput.append(y)
                         fy = fft(y)
                         data = fy[fit_interval]
                         pm[i] = np.argmax(abs(data))
@@ -137,7 +144,9 @@ if DataSimulation == True:
             pm = np.full((len(Fval)), np.nan)
 
             for i in range(len(Fval)):
-                y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1)) * np.exp(-0.01* RMS*df*(np.arange(1, N+1) - 200)**2) + 2*np.exp(-0.03*df*(np.arange(1, N+1)- 200)**2)
+                y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1)) * np.exp(-0.01 * 
+                            RMS*df*(np.arange(1, N+1) - 200)**2) + 2*np.exp(-0.03*df*(np.arange(1, N+1)- 200)**2)
+                SInput.append(y)
                 fy = fft(y)
                 data = fy[fit_interval]
                 fv[i, :] = data
@@ -145,6 +154,25 @@ if DataSimulation == True:
 
                 for j in range(len(lt)):
                     ff[i, j] = FFT_peakFit(data, lt[j])
+            
+        if NoiseAnalysis:
+            
+            ffn = np.full((len(Fval), len(lt)), np.nan)
+            fnn = np.full((len(Fval), len(lt)), np.nan)
+            fvn = np.full((len(Fval), Nnoise), np.nan)
+            
+            for i in range(len(Fval)):
+                y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1)) * np.exp(-0.01* RMS*df*(np.arange(1, N+1) 
+                                                        - 200)**2) + 2*np.exp(-0.03*df*(np.arange(1, N+1)- 200)**2)
+                fy = fft(y + RMS * np.random.randn(Nnoise, N), axis=1)
+                data = fy[:, fit_interval]
+                
+                for j in range(len(lt)):
+                    fdn = []
+                    for k in range(len(data)):
+                         fdn.append(FFT_peakFit(data[k], lt[j]))
+                    ffn[i, j] = np.mean(fdn)
+                    fvn[i, j] = np.var(fdn)
                     
     if Gnoise == False:
         
@@ -156,6 +184,7 @@ if DataSimulation == True:
                     pm = np.full((len(Fval)), np.nan)
                 
                     for i in range(len(Fval)):
+                        SInput.append(y)
                         y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1) + Phase_shift[k])
                         fy = fft(y)
                         data = fy[fit_interval]
@@ -163,12 +192,13 @@ if DataSimulation == True:
                         PA[i,k,l] = FFT_peakFit(data, lt[l])
                         
         if DifferentPhase == False:
-            
+            fstd = np.full((len(Fval), len(lt)), np.nan)
             ff = np.full((len(Fval), len(lt)), np.nan)
             fv = np.full((len(Fval), len(fit_interval)), np.nan)
             pm = np.full((len(Fval)), np.nan)
 
             for i in range(len(Fval)):
+                SInput.append(y)
                 y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1))
                 fy = fft(y)
                 data = fy[fit_interval]
@@ -177,9 +207,37 @@ if DataSimulation == True:
 
                 for j in range(len(lt)):
                     ff[i, j] = FFT_peakFit(data, lt[j])
+        
+        if NoiseAnalysis:   
+            ffn = np.full((len(Fval), len(lt)), np.nan)
+            fnn = np.full((len(Fval), len(lt)), np.nan)
+            fvn = np.full((len(Fval), Nnoise), np.nan)
             
-    
-#%%
+            for i in range(len(Fval)):
+                y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1)) 
+                fy = fft(y + RMS * np.random.randn(Nnoise, N), axis=1)
+                data = fy[:, fit_interval]
+                
+                for j in range(len(lt)):
+                    fdn = []
+                    for k in range(len(data)):
+                         fdn.append(FFT_peakFit(data[k], lt[j]))
+                    ffn[i, j] = np.mean(fdn)
+                    fvn[i, j] = np.var(fdn)
+        
+
+
+#%% first sample of input data
+
+if ShowInputsignal == True:
+    plt.figure(figsize = (10, 10))
+    plt.plot(np.array(SInput[0]))
+    plt.xlabel('Time')
+    plt.ylabel('amplitude')
+    plt.title('first sample of input signal}')
+    plt.show
+
+#%% Phase Analysis
 
 if PhaseAnalysis:
     for l in range(len(lt)): 
@@ -187,7 +245,7 @@ if PhaseAnalysis:
         h1 = plt.subplot(211)
         
         for i in range(len(Phase_shift)):
-            plt.plot(Fval, PA[:, i,l] + 2*fit_offset, '.-', label = f'{Phase_shift[i]/np.pi: .2f} π ', linewidth = 0.5)
+            plt.plot(Fval, PA[:, i,l] + 2*fit_offset, '.-', label = f'{Phase_shift[i]/np.pi: .2f} π ', linewidth = 0.5, markersize = 0.8)
         
         plt.xlabel('Frequency (units of $\Delta$ f)')
         plt.ylabel('peak fit (pxl)')
@@ -196,7 +254,7 @@ if PhaseAnalysis:
         
         h2 = plt.subplot(212)
         for i in range(len(Phase_shift)):
-            plt.plot(Fval, (PA[:, i, l] + 2*fit_offset) - Fval, '.-', label = f'{Phase_shift[i]/np.pi: .2f} π ', linewidth = 0.5)
+            plt.plot(Fval, (PA[:, i, l] + 2*fit_offset) - Fval, '.-', label = f'{Phase_shift[i]/np.pi: .2f} π ', linewidth = 0.5, markersize = 0.8)
         
         plt.xlabel('Frequency (units of $\Delta$ f)')
         plt.ylabel('misfit ()')
@@ -216,7 +274,7 @@ if CompareMethods:
             h1 = plt.subplot(211)
             
             for l in range(len(lt)):
-                plt.plot(Fval, PA[:, i, l] + 2*fit_offset, '.-',  label=lt[l], linewidth = 0.5)
+                plt.plot(Fval, PA[:, i, l] + 2*fit_offset, '.-',  label=lt[l], linewidth = 0.5, markersize = 0.8)
             
             plt.xlabel('Frequency (units of $\Delta$ f)')
             plt.ylabel('peak fit (pxl)')
@@ -226,7 +284,7 @@ if CompareMethods:
             
             h2 = plt.subplot(212)
             for l in range(len(lt)):
-                plt.plot(Fval, (PA[:, i, l] + 2*fit_offset) - Fval, '.-',  label=lt[l],  linewidth = 0.5)
+                plt.plot(Fval, (PA[:, i, l] + 2*fit_offset) - Fval, '.-',  label=lt[l], linewidth = 0.5, markersize = 0.8)
         
             plt.xlabel('Frequency (units of $\Delta$ f)')
             plt.ylabel('misfit ()')
@@ -242,7 +300,7 @@ if CompareMethods:
         plt.figure(figsize = (10, 10))
         h1 = plt.subplot(211)
         for i in range(len(lt)):
-            plt.plot(Fval, ff[:,i] + 2*fit_offset, '.-',  label=lt[i], linewidth = 0.5)
+            plt.plot(Fval, ff[:,i] + 2*fit_offset, '.-',  label=lt[i], linewidth = 0.5, markersize = 0.8)
     
         plt.plot(Fval, pm + 2*fit_offset, 'b', label='Maximum pixel')
         plt.xlabel('Frequency (units of $\Delta$ f)')
@@ -251,7 +309,7 @@ if CompareMethods:
         
         h2 = plt.subplot(212)
         for i in range(len(lt)):
-            plt.plot(Fval, (ff[:, i] + 2*fit_offset) - Fval, '.-',  label=lt[0], linewidth = 0.5)
+            plt.plot(Fval, (ff[:, i] + 2*fit_offset) - Fval, '.-',  label=lt[0], linewidth = 0.5, markersize = 0.8)
       
         plt.xlabel('Frequency (units of $\Delta$ f)')
         plt.ylabel('misfit')
@@ -260,36 +318,23 @@ if CompareMethods:
     
 #%% code for noise analysis
 
-if noiseAnalysis:
-    ff = np.full((len(Fval), len(lt)), np.nan)
-    fn = np.full((len(Fval), len(lt)), np.nan)
-    fv = np.full((len(Fval), Nnoise), np.nan)
+if NoiseAnalysis:
     
-    for i in range(len(Fval)):
-        y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1))
-        fy = fft(y + RMS * np.random.randn(Nnoise, N), axis=1)
-        data = fy[:, fit_interval]
-        
-        for j in range(len(lt)):
-            fd = []
-            for k in range(len(data)):
-                 fd.append(FFT_peakFit(data[k], lt[j]))
-            ff[i, j] = np.mean(fd)
-            fv[i, j] = np.var(fd)
-
     plt.figure(figsize = (10, 10))
     h3 = plt.subplot(211)
-    plt.plot(Fval, ff+ 2*fit_offset, '.-')
-    plt.title('Fit of FFT peak position')
+    plt.plot(Fval, ffn+ 2*fit_offset, '.-' , linewidth = 0.5, markersize = 0.8)
+    plt.title(' Average Fit of FFT Peak Position')
     plt.xlabel('Frequency (units of $\Delta$ f)')
     plt.ylabel('Average peak fit (pxl)')
     plt.legend(lt)
     
     h4 = plt.subplot(212)
-    plt.plot(Fval, np.sqrt(fv), '.-')
+    plt.plot(Fval, np.sqrt(fvn), '.-' , linewidth = 0.5, markersize = 0.8)
     plt.title(f"effect of noise {RMS}")
     plt.xlabel('Frequency (units of $\Delta$ f)')
-    plt.ylabel('variance peak fit (units of $\Delta$ f)')
+    plt.ylabel('std peak fit (units of $\Delta$ f)')
     plt.legend(lt)
     plt.show()
+    
+
 
