@@ -32,7 +32,7 @@ DataSimulation = True
 RealData = False 
 
 # input for simulation:
-Gnoise = True                # Does the signal have a gaussian curve to it?
+Gnoise = False                # Does the signal have a gaussian curve to it?
 DifferentPhase = True        # do you want to compare  for different phase shifts?
 
 ShowInputsignal = False       # shows a graph of the first signal
@@ -47,7 +47,7 @@ RMS = 0.1 # Magnitude of Noise
 
 
 
-#%%
+#%% peakfit function
  
 def FFT_peakFit(data, method): 
     # Finding the peak 
@@ -115,118 +115,7 @@ def FFT_peakFit(data, method):
 
 
 
-#%% Simulation Dataset
-
-SInput = []
-
-if DataSimulation == True:
-    if Gnoise == True:
-        if DifferentPhase:
-            PA = np.full((len(Fval), len(Phase_shift), len(lt)), np.nan)
-            for l in range(len(lt)):    
-                for k in range(len(Phase_shift)):
-                    ff = np.full((len(Fval), len(lt)), np.nan)
-                    pm = np.full((len(Fval)), np.nan)
-                
-                    for i in range(len(Fval)):
-                        y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1) + 
-                                   Phase_shift[k]) * np.exp(-0.01* RMS*df*(np.arange(1, N+1) - 200)**2) + 2*np.exp(-0.03*df*(np.arange(1, N+1)- 200)**2)
-                        SInput.append(y)
-                        fy = fft(y)
-                        data = fy[fit_interval]
-                        pm[i] = np.argmax(abs(data))
-                        PA[i,k,l] = FFT_peakFit(data, lt[l])
-        
-        if DifferentPhase == False:
-            
-            ff = np.full((len(Fval), len(lt)), np.nan)
-            fv = np.full((len(Fval), len(fit_interval)), np.nan)
-            pm = np.full((len(Fval)), np.nan)
-
-            for i in range(len(Fval)):
-                y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1)) * np.exp(-0.01 * 
-                            RMS*df*(np.arange(1, N+1) - 200)**2) + 2*np.exp(-0.03*df*(np.arange(1, N+1)- 200)**2)
-                SInput.append(y)
-                fy = fft(y)
-                data = fy[fit_interval]
-                fv[i, :] = data
-                pm[i] = np.argmax(abs(data))
-
-                for j in range(len(lt)):
-                    ff[i, j] = FFT_peakFit(data, lt[j])
-            
-        if NoiseAnalysis:
-            
-            ffn = np.full((len(Fval), len(lt)), np.nan)
-            fnn = np.full((len(Fval), len(lt)), np.nan)
-            fvn = np.full((len(Fval), Nnoise), np.nan)
-            
-            for i in range(len(Fval)):
-                y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1)) * np.exp(-0.01* RMS*df*(np.arange(1, N+1) 
-                                                        - 200)**2) + 2*np.exp(-0.03*df*(np.arange(1, N+1)- 200)**2)
-                fy = fft(y + RMS * np.random.randn(Nnoise, N), axis=1)
-                data = fy[:, fit_interval]
-                
-                for j in range(len(lt)):
-                    fdn = []
-                    for k in range(len(data)):
-                         fdn.append(FFT_peakFit(data[k], lt[j]))
-                    ffn[i, j] = np.mean(fdn)
-                    fvn[i, j] = np.var(fdn)
-                    
-    if Gnoise == False:
-        
-        if DifferentPhase:
-            PA = np.full((len(Fval), len(Phase_shift), len(lt)), np.nan)
-            for l in range(len(lt)):    
-                for k in range(len(Phase_shift)):
-                    ff = np.full((len(Fval), len(lt)), np.nan)
-                    pm = np.full((len(Fval)), np.nan)
-                
-                    for i in range(len(Fval)):
-                        SInput.append(y)
-                        y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1) + Phase_shift[k])
-                        fy = fft(y)
-                        data = fy[fit_interval]
-                        pm[i] = np.argmax(abs(data))
-                        PA[i,k,l] = FFT_peakFit(data, lt[l])
-                        
-        if DifferentPhase == False:
-            fstd = np.full((len(Fval), len(lt)), np.nan)
-            ff = np.full((len(Fval), len(lt)), np.nan)
-            fv = np.full((len(Fval), len(fit_interval)), np.nan)
-            pm = np.full((len(Fval)), np.nan)
-
-            for i in range(len(Fval)):
-                SInput.append(y)
-                y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1))
-                fy = fft(y)
-                data = fy[fit_interval]
-                fv[i, :] = data
-                pm[i] = np.argmax(abs(data))
-
-                for j in range(len(lt)):
-                    ff[i, j] = FFT_peakFit(data, lt[j])
-        
-        if NoiseAnalysis:   
-            ffn = np.full((len(Fval), len(lt)), np.nan)
-            fnn = np.full((len(Fval), len(lt)), np.nan)
-            fvn = np.full((len(Fval), Nnoise), np.nan)
-            
-            for i in range(len(Fval)):
-                y = np.sin(2 * np.pi * Fval[i] * df * np.arange(1, N+1)) 
-                fy = fft(y + RMS * np.random.randn(Nnoise, N), axis=1)
-                data = fy[:, fit_interval]
-                
-                for j in range(len(lt)):
-                    fdn = []
-                    for k in range(len(data)):
-                         fdn.append(FFT_peakFit(data[k], lt[j]))
-                    ffn[i, j] = np.mean(fdn)
-                    fvn[i, j] = np.var(fdn)
-                    
-                    
-#%%
+#%%  data simulation functions
 
 def generateData(Ndata=700, fData=9, phase=0, rms_noise=None, Gnoise=False):
     """Generate data of specified length, frequency, and -- if rms
@@ -235,14 +124,15 @@ def generateData(Ndata=700, fData=9, phase=0, rms_noise=None, Gnoise=False):
         df = 1 / Ndata
         data = np.sin(2 * np.pi * fData * df * np.arange(1, Ndata + 1) + phase) + 2 * np.exp(
             -0.03 * df * (np.arange(1, Ndata + 1) - 200) ** 2)
+        if rms_noise is not None:
+            data += np.random.normal(scale=rms_noise, size=Ndata)
     elif Gnoise == False:
         df = 1/Ndata
         data = np.sin(2 * np.pi * fData * df * np.arange(1, Ndata + 1) + phase)
-    
-    if rms_noise is not None:
-        data += np.random.normal(scale=rms_noise, size=Ndata)
-    
+        if rms_noise is not None:
+            data += np.random.normal(scale=rms_noise, size=Ndata)
     return data
+
 
 def varyFrequency(Ndata=700, fData=None, phase=0, rms_noise=None, method="Quinns2nd"):
     """Generate fits with a range of frequencies"""
@@ -252,37 +142,52 @@ def varyFrequency(Ndata=700, fData=None, phase=0, rms_noise=None, method="Quinns
         res[ii] = FFT_peakFit(fft(generateData(Ndata, fData[ii], phase, rms_noise)), method)
     return res
 
-dummyvar = varyFrequency(Ndata= N, fData= Fval)
-
 
 def varyPhase(Ndata=700, fData=None, rms_noise=None, method="Quinns2nd", Phases = np.arange(0, 6)*0.2*np.pi):
     "Generates fits of a range of frequencies for different phases shifts"
-    bro1 = np.array([])
+    Pres = np.array([])
     for i in range(len(Phases)):
-        Bro = varyFrequency(Ndata, fData, Phases[i], rms_noise)
-        bro1 = np.append(bro1, Bro)
-    bro1 = np.resize(bro1, (len(Phases), len(Fval)))
-    return bro1.T
+        resP = varyFrequency(Ndata, fData, Phases[i], rms_noise)
+        Pres = np.append(Pres, resP)
+    Pres = np.resize(Pres, (len(Phases), len(Fval)))
+    return Pres.T
 
 
+def getSTD(Ndata=700, fData=None, rms_noise=None,phase = 0, method="Quinns2nd", Iter = 100):
+    """ Gets the mean and STD of multiple input signals with same phase/freqg but with random noise"""
+    NA = np.array([])
+    for i in range(Iter):
+        fp =  varyFrequency(Ndata, fData, phase, rms_noise, method)
+        NA = np.append(NA, fp)
+    NA = (np.resize(NA, (Iter, len(Fval)))).T
+    ffn = np.mean(NA, axis = 1)
+    fvn = np.sqrt(np.var(NA, axis = 1))
+    return np.vstack((ffn,fvn)).T
+        
+
+#%% check if everything is going well 
+dummyvar = varyFrequency(Ndata= N, fData= Fval)
 dummyvar2 = varyPhase(Ndata= N, fData= Fval, Phases = Phase_shift)
+dummyvar3 = varyFrequency(Ndata= N, fData= Fval, rms_noise = RMS)
+dumvar4 = getSTD(Ndata = N, fData = Fval, phase = 0, rms_noise= RMS, Iter = 10)
+
+
+plt.figure()
+plt.plot(dummyvar3)
+plt.show()
 
 plt.figure(figsize = (10, 10))
 h1 = plt.subplot(211)
-
 for i in range(len(Phase_shift)):
     plt.plot(Fval, dummyvar2[:, i] + 2*fit_offset, '.-', label = f'{Phase_shift[i]/np.pi: .2f} π ', linewidth = 0.5, markersize = 0.8)
-
 plt.xlabel('Frequency (units of $\Delta$ f)')
 plt.ylabel('peak fit (pxl)')
 plt.title(f'Phase differencces with {lt[l]}')
 
 
-h1 = plt.subplot(212)
-
+h2 = plt.subplot(212)
 for i in range(len(Phase_shift)):
     plt.plot(Fval, (dummyvar2[:, i] + 2*fit_offset) - Fval, '.-', label = f'{Phase_shift[i]/np.pi: .2f} π ', linewidth = 0.5, markersize = 0.8)
-
 plt.xlabel('Frequency (units of $\Delta$ f)')
 plt.ylabel('misfit ()')
 plt.legend()
