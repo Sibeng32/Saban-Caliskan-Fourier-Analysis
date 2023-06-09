@@ -13,7 +13,7 @@ from scipy.fftpack import fft, ifft
 N = 700
 df = 1 / N
 
-Fval = np.linspace(8, 10, 1000)
+Fval = np.linspace(8.4, 9.6, 1000)
 fit_interval = np.arange(7, 13, 1)
 fit_offset = m.ceil(len(fit_interval)/2) + 1/2
 
@@ -224,7 +224,47 @@ if DataSimulation == True:
                          fdn.append(FFT_peakFit(data[k], lt[j]))
                     ffn[i, j] = np.mean(fdn)
                     fvn[i, j] = np.var(fdn)
-        
+                    
+                    
+#%%
+
+def generateData(Ndata=700, fData=9, phase=0, rms_noise=None, Gnoise=False):
+    """Generate data of specified length, frequency, and -- if rms
+    given -- with noise, and/or with a Gaussian form to the data if Gnoise = True."""
+    if Gnoise == True:
+        df = 1 / Ndata
+        data = np.sin(2 * np.pi * fData * df * np.arange(1, Ndata + 1) + phase) * np.exp(
+            -0.01 * RMS * df * (np.arange(1, Ndata + 1) - 200) ** 2) + 2 * np.exp(
+            -0.03 * df * (np.arange(1, Ndata + 1) - 200) ** 2)
+    elif Gnoise == False:
+        df = 1/Ndata
+        data = np.sin(2 * np.pi * fData * df * np.arange(1, Ndata + 1) + phase)
+    
+    if rms_noise is not None:
+        data += np.random.normal(scale=rms_noise, size=Ndata)
+    
+    return data
+
+
+bruhh = []
+for i in range(len(Fval)):
+    bruh = FFT_peakFit(generateData(Ndata = N, fData= Fval[i]), "Quinns2nd")
+    bruhh.append(bruh)
+
+def varyFrequency(Ndata=700, fData=None, phase=0, rms_noise=None, method="Quinns2nd"):
+    """Generate fits with a range of frequencies"""
+    NFreq = len(fData)
+    res = np.zeros((NFreq, 1))
+    for ii in range(NFreq):
+        res[ii] = FFT_peakFit(generateData(Ndata, fData[ii], phase, rms_noise), method)
+    return res
+
+
+plt.figure()
+plt.plot(Fval, bruh + 1)
+plt.xlabel('Frequency (units of $\Delta$ f)')
+plt.ylabel('peak fit (pxl)')
+plt.show()
 
 
 #%% first sample of input data
