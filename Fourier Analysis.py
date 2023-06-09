@@ -20,12 +20,12 @@ fit_offset = m.ceil(len(fit_interval)/2) + 1/2
 # desired output
 CompareMethods = True   # Compares the methods in a graph
 NoiseAnalysis = False   # Outputs a graph for the mean o fmultiple samples with noise.
-PhaseAnalysis = False    # Compares for different phase shifts per method
+PhaseAnalysis = True    # Compares for different phase shifts per method
 
 
 # which methods do you want?
 lt = ["Quadratic", "Barycentric", "Jains", "Quinns2nd"]
-# lt = [lt[2], lt[3]] 
+lt = [lt[3]] 
 
 # input data
 DataSimulation = True 
@@ -33,13 +33,13 @@ RealData = False
 
 # input for simulation:
 Gnoise = True                # Does the signal have a gaussian curve to it?
-DifferentPhase = False        # do you want to compare  for different phase shifts?
+DifferentPhase = True        # do you want to compare  for different phase shifts?
 
 ShowInputsignal = False       # shows a graph of the first signal
 
 # which phases do you want?
-Phase_shift = np.arange(0, 10)*0.2*np.pi
-Phase_shift = Phase_shift[0:5] # the other half produces the same output.
+Phase_shift = np.arange(0, 6)*0.2*np.pi
+
 
 Nnoise = 1000 # How many samples
 RMS = 0.1 # Magnitude of Noise
@@ -233,8 +233,7 @@ def generateData(Ndata=700, fData=9, phase=0, rms_noise=None, Gnoise=False):
     given -- with noise, and/or with a Gaussian form to the data if Gnoise = True."""
     if Gnoise == True:
         df = 1 / Ndata
-        data = np.sin(2 * np.pi * fData * df * np.arange(1, Ndata + 1) + phase) * np.exp(
-            -0.01 * RMS * df * (np.arange(1, Ndata + 1) - 200) ** 2) + 2 * np.exp(
+        data = np.sin(2 * np.pi * fData * df * np.arange(1, Ndata + 1) + phase) + 2 * np.exp(
             -0.03 * df * (np.arange(1, Ndata + 1) - 200) ** 2)
     elif Gnoise == False:
         df = 1/Ndata
@@ -245,25 +244,48 @@ def generateData(Ndata=700, fData=9, phase=0, rms_noise=None, Gnoise=False):
     
     return data
 
-
-bruhh = []
-for i in range(len(Fval)):
-    bruh = FFT_peakFit(generateData(Ndata = N, fData= Fval[i]), "Quinns2nd")
-    bruhh.append(bruh)
-
 def varyFrequency(Ndata=700, fData=None, phase=0, rms_noise=None, method="Quinns2nd"):
     """Generate fits with a range of frequencies"""
     NFreq = len(fData)
-    res = np.zeros((NFreq, 1))
+    res = np.zeros(NFreq)
     for ii in range(NFreq):
-        res[ii] = FFT_peakFit(generateData(Ndata, fData[ii], phase, rms_noise), method)
+        res[ii] = FFT_peakFit(fft(generateData(Ndata, fData[ii], phase, rms_noise)), method)
     return res
 
+dummyvar = varyFrequency(Ndata= N, fData= Fval)
 
-plt.figure()
-plt.plot(Fval, bruh + 1)
+
+def varyPhase(Ndata=700, fData=None, rms_noise=None, method="Quinns2nd", Phases = np.arange(0, 6)*0.2*np.pi):
+    "Generates fits of a range of frequencies for different phases shifts"
+    bro1 = np.array([])
+    for i in range(len(Phases)):
+        Bro = varyFrequency(Ndata, fData, Phases[i], rms_noise)
+        bro1 = np.append(bro1, Bro)
+    bro1 = np.resize(bro1, (len(Phases), len(Fval)))
+    return bro1.T
+
+
+dummyvar2 = varyPhase(Ndata= N, fData= Fval, Phases = Phase_shift)
+
+plt.figure(figsize = (10, 10))
+h1 = plt.subplot(211)
+
+for i in range(len(Phase_shift)):
+    plt.plot(Fval, dummyvar2[:, i] + 2*fit_offset, '.-', label = f'{Phase_shift[i]/np.pi: .2f} π ', linewidth = 0.5, markersize = 0.8)
+
 plt.xlabel('Frequency (units of $\Delta$ f)')
 plt.ylabel('peak fit (pxl)')
+plt.title(f'Phase differencces with {lt[l]}')
+
+
+h1 = plt.subplot(212)
+
+for i in range(len(Phase_shift)):
+    plt.plot(Fval, (dummyvar2[:, i] + 2*fit_offset) - Fval, '.-', label = f'{Phase_shift[i]/np.pi: .2f} π ', linewidth = 0.5, markersize = 0.8)
+
+plt.xlabel('Frequency (units of $\Delta$ f)')
+plt.ylabel('misfit ()')
+plt.legend()
 plt.show()
 
 
