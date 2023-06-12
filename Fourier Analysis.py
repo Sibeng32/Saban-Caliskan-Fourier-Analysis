@@ -345,19 +345,33 @@ plotNoiseAnalysis(Ndata= N, fData= Fval)
 
 #%%
 PlotPhaseDif(Ndata= N, fData= Fval, Phases = Phase_shift, method= "Jains")
+PlotPhaseDif(Ndata= N, fData= Fval, Phases = Phase_shift, method= "Jains")
+
+#%% noise  jains amount of samples
+"""amount of itterations with noise only makes the peak fit smoother,
+ the 'amplitude' of the STD doesn'treally  get lower. """
+# plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 , method = "Jains")
+# plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 , method = "Jains", Iter = 10)
+
+#%% noise  Quinns  amount of samples
+"""amount of itterations with noise only makes the peak fit smoother,
+ the 'amplitude' of the STD doesn'treally  get lower, except if  amount of samples/iterations = less than 20 for samples
+ of true sine waves.
+ """
+# plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 )
+# plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 , Iter = 1000)
 
 
-#%%
-"amount of itterations with noise only makes the peak fit smoother, the STD doesn'treally  get lower. "
-plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 , method = "Jains")
-plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 , method = "Jains", Iter = 10)
+#%% noise, magnitude of the noise
+"""
+in this case the magnitude does make clearly impact the STD. 
+for greater magnitudes of STD the STD curve does get higher, and the peaks get 
+a bit more spread out. this holds for both cases.
+ """
+# plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=RMS , method = "Jains")
+# plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 , method = "Jains")
 
-#%%
-
-plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=RMS , method = "Jains")
-plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 , method = "Jains")
-
-plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=RMS )
-plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 )
+# plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=RMS )
+# plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 )
 
 #%%
