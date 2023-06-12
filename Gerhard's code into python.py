@@ -104,7 +104,7 @@ def FFT_peakFit(data, method):
 #%%compare plotS
 
 lt = ["Quadratic", "Barycentric", "Jains", "Quinns2nd"]
-lt = [lt[2], lt[3]]
+# lt = [lt[2], lt[3]]
 #
 
 if comparePlot:

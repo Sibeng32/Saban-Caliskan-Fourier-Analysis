@@ -12,7 +12,7 @@ from scipy.fftpack import fft, ifft
 # from numpy.fft import fft
 
 # sampling rate
-Ndata = 700
+Ndata = 701
 # sample interval 
 t = np.arange(0,5,1/Ndata)
 
@@ -41,8 +41,9 @@ plt.show()
 F = fft(x)
 
 F_abs = np.abs(F)
-F_abs[0] = 0
+F_abs = F_abs[1:]
 
+#%%
 
 
 n = np.arange(len(F))
