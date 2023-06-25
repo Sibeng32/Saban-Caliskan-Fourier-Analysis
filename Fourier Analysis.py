@@ -15,7 +15,6 @@ df = 1 / N
 
 Fval = np.linspace(8.4, 9.6, 1000)
 fit_interval = np.arange(7, 13, 1)
-fit_offset = m.ceil(len(fit_interval)/2) + 1/2
 
 # desired output
 CompareMethods = True   # Compares the methods in a graph
@@ -223,7 +222,7 @@ def plotCompareMethods(Ndata=700, fData=None, phase=0, rms_noise=None, methods=[
         for i in range(len(methods)):
             plt.plot(fData, ff[:,i], '.-',  label=methods[i], linewidth = 0.5, markersize = 0.8)
     
-        plt.xlabel('Frequency (units of $\Delta$ f)')
+        plt.xlabel('Frequency (units of $\Delta$ f)' )
         plt.ylabel('peak fit (pxl)')
         plt.legend(methods)
         plt.title("Fit of FFT Peak Positions for different methods")
@@ -259,6 +258,14 @@ def plotCompareMethods(Ndata=700, fData=None, phase=0, rms_noise=None, methods=[
         plt.legend(methods)
         plt.show()
         
+def MaxMisfit(Ndata=700, fData=None, phase=0, rms_noise=None, method="Quinns2nd", plotmisfit = True, onlymisfits = False):
+    "returns the maximum deviation from the original input signal"
+    ff = varyFrequency(Ndata, fData, phase, rms_noise, method) - fData
+    if abs(min(ff)) > max(ff):
+        return abs(min(ff))
+    else:
+        return max(ff)
+        
 
 def PlotPhaseDif(Ndata=700, fData=None, rms_noise=None, method="Quinns2nd", Phases = np.arange(0, 6)*0.2*np.pi, plotmisfit = True, onlymisfits = False):
     " Plots the peakfit for different phases in one graph, can choose to only plot the peakfit or misfit."
@@ -268,19 +275,25 @@ def PlotPhaseDif(Ndata=700, fData=None, rms_noise=None, method="Quinns2nd", Phas
         plt.subplot(211)
         for i in range(len(Phase_shift)):
             plt.plot(fData, ffP[:,i], '.-', label = f'{Phase_shift[i]/np.pi: .2f} π ', linewidth = 0.5, markersize = 0.8)
-        plt.xlabel('Frequency (units of $\Delta$ f)')
-        plt.ylabel('peak fit (pxl)')
-        plt.legend()
-        plt.title(f'Peakfit with Phase differences for {method}')
+        plt.xlabel('Frequency (units of $\Delta$ f)',  size=23)
+        plt.ylabel('peak fit (pxl)',  size=23)
+        plt.legend(fontsize=15)
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
+        
+        # plt.title(f'Peakfit with Phase differences for {method}')
 
 
         plt.subplot(212)
         for i in range(len(Phase_shift)):
             plt.plot(fData, ffP[:,i] - fData, '.-', label = f'{Phase_shift[i]/np.pi: .2f} π ', linewidth = 0.5, markersize = 0.8)
-        plt.xlabel('Frequency (units of $\Delta$ f)')
-        plt.ylabel('misfit ()')
-        plt.title(f'misfit of Peakfit with Phase differences for {method}')
-        plt.legend()
+        plt.xlabel('Frequency (units of $\Delta$ f)',  size=23)
+        plt.ylabel('misfit ()',  size=23)
+        # plt.title(f'misfit of Peakfit with Phase differences for {method}')
+        plt.legend(fontsize=15)
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
+        plt.savefig(f'phase {method}.pdf', format='pdf', dpi=300)
         plt.show()
         
     if plotmisfit == False:
@@ -309,15 +322,20 @@ def plotNoiseAnalysis(Ndata=700, fData=None, rms_noise=RMS,phase = 0, method="Qu
         plt.figure(figsize = (10, 10))
         plt.subplot(211)
         plt.plot(fData, NA[:,0], '.-' , linewidth = 0.5, markersize = 0.8)
-        plt.title(f' Average Fit of FFT Peak Position with {method}')
-        plt.xlabel('Frequency (units of $\Delta$ f)')
-        plt.ylabel('Average peak fit (pxl)')
+        # plt.title(f' Average Fit of FFT Peak Position with {method}')
+        plt.xlabel('Frequency (units of $\Delta$ f)',  size=23)
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
+        plt.ylabel('Average peak fit (pxl)',  size=23)
     
         plt.subplot(212)
         plt.plot(fData, np.sqrt(NA[:,1]), '.-' , linewidth = 0.5, markersize = 0.8)
-        plt.title(f"effect of noise {rms_noise}")
-        plt.xlabel('Frequency (units of $\Delta$ f)')
-        plt.ylabel('std peak fit (units of $\Delta$ f)')
+        # plt.title(f"effect of noise {rms_noise}")
+        plt.xlabel('Frequency (units of $\Delta$ f)',  size=24)
+        plt.ylabel('std peak fit (units of $\Delta$ f)',  size=23)
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
+        plt.savefig(f'Noise {method} with {Iter} iterations and magnitude of {rms_noise} .pdf', format='pdf', dpi=300)
         plt.show()
     if plotSTD == False:
         plt.figure(figsize = (10, 10))
@@ -325,6 +343,7 @@ def plotNoiseAnalysis(Ndata=700, fData=None, rms_noise=RMS,phase = 0, method="Qu
         plt.title(f' Average Fit of FFT Peak Position with {method}')
         plt.xlabel('Frequency (units of $\Delta$ f)')
         plt.ylabel('Average peak fit (pxl)')
+        
         plt.show()
     if onlySTD:
         plt.figure()
@@ -335,36 +354,39 @@ def plotNoiseAnalysis(Ndata=700, fData=None, rms_noise=RMS,phase = 0, method="Qu
         plt.show()
           
     
+#%% plots one data
+a = generateData(Ndata=700, fData=8.5, phase=0, rms_noise=0.1, Gnoise=False)
+
+plt.figure()
+plt.plot(np.array(range(700))/700, a)
+plt.xlabel('Time t',  size=14)
+plt.ylabel('Amplitude',  size=14)
+plt.savefig('input data w noise.pdf', format='pdf', dpi=300)
+
+plt.show()
+
+#%% maximum deviations
+
+for i in lt:
+    print(MaxMisfit(Ndata = N, fData = Fval, method= i) *100)
+
 
 #%% check if everything is going well 
 
 peakFitplot(Ndata = N, fData = Fval)
 plotCompareMethods(Ndata = N, fData = Fval, methods= lt[2:4])
-PlotPhaseDif(Ndata= N, fData= Fval, Phases = Phase_shift)
-plotNoiseAnalysis(Ndata= N, fData= Fval)
 
 #%%
-PlotPhaseDif(Ndata= N, fData= Fval, Phases = Phase_shift, method= "Jains")
-PlotPhaseDif(Ndata= N, fData= Fval, Phases = Phase_shift, method= "Jains")
+PlotPhaseDif(Ndata= N, fData= Fval, Phases = Phase_shift)
+PlotPhaseDif(Ndata= N, fData= Fval, Phases = Phase_shift, method = "Jains")
 
-#%% noise  jains amount of samples
-"""amount of itterations with noise only makes the peak fit smoother,
- the 'amplitude' of the STD doesn'treally  get lower. """
-# plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 , method = "Jains")
-# plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 , method = "Jains", Iter = 10)
-
-#%% noise  Quinns  amount of samples
-"""amount of itterations with noise only makes the peak fit smoother,
- the 'amplitude' of the STD doesn'treally  get lower, except if  amount of samples/iterations = less than 20 for samples
- of true sine waves.
- """
-# plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 )
-# plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 , Iter = 1000)
-
+#%%
+# plotNoiseAnalysis(Ndata= N, fData= Fval)
+# plotNoiseAnalysis(Ndata= N, fData= Fval, method ='Jains')
 
 #%% noise, magnitude of the noise
 """
-in this case the magnitude does make clearly impact the STD. 
+in this case the magnitude does clearly impact the STD. 
 for greater magnitudes of STD the STD curve does get higher, and the peaks get 
 a bit more spread out. this holds for both cases.
  """
@@ -374,4 +396,4 @@ a bit more spread out. this holds for both cases.
 # plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=RMS )
 # plotNoiseAnalysis(Ndata= N, fData= Fval, rms_noise=1 )
 
-#%%
+# a = generateData(Ndata = N, fData = Fval)
